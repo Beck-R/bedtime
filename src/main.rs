@@ -12,6 +12,7 @@ use winreg::enums::*;
 use winreg::RegKey;
 
 fn main() {
+    // copy self to C:\Users\<USER>\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup
     let mut path = fs::canonicalize(
         "C:\\Users\\".to_string()
             + &env::var("USERNAME").unwrap()
@@ -26,6 +27,7 @@ fn main() {
     }
 
     // more covert(to the user) way of running program on startup, but is flagged by windows defender
+    // add to startup registry
     let hklm = RegKey::predef(HKEY_CURRENT_USER);
     let key = hklm
         .open_subkey_with_flags(
@@ -35,11 +37,13 @@ fn main() {
         .unwrap();
     key.set_value("Windows Auto Shutdown", &path.to_str().unwrap())
         .unwrap();
-
+    // main loop
     loop {
+        // get current time
         let now: DateTime<Local> = Local::now();
         let hour = now.hour();
 
+        // check if it is time to go to sleep
         if hour >= 22 {
             println!("shutting down");
             match shutdown() {
@@ -54,6 +58,7 @@ fn main() {
             }
         }
 
+        // wait for a second
         thread::sleep(time::Duration::from_secs(1));
     }
 }
